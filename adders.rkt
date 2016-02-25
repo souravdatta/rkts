@@ -2,18 +2,6 @@
 
 (require "propagators.rkt")
 
-
-;;;;
-
-(define (nth n l)
-  (if (or (> n (length l)) (< n 0))
-    (error "Index out of bounds.")
-    (if (eq? n 0)
-      (car l)
-      (nth (- n 1) (cdr l)))))
-
-;;;;
-
 (define (andf x y)
   (if (= x 1)
       y
@@ -67,4 +55,4 @@
        (and-gate a b t3)
        (or-gate t2 t3 co)))))
 
-
+(provide full-adder)
