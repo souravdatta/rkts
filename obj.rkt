@@ -72,4 +72,4 @@
              (set-prop! obj sx (lambda (self a1 ...) b1 ...))))))))
 
 
-(provide get tell define-object define-method)
+(provide get tell define-object define-method no-parent null)
