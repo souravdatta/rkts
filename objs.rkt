@@ -1,7 +1,5 @@
 #lang racket
 
-;; Almost complete object system
-
 (define null 'null)
 (define no-parent 'no-parent)
 
@@ -75,7 +73,7 @@
                                                (cons 'prototype
                                                      (make-hash))))))))))
 
-(define (new-object kls . init-params)
+(define (new-object kls . init-param-list)
   (let ([o ((hash-ref kls 'constructor))]
         [methods (hash-ref kls 'prototype)])
     (hash-for-each methods (lambda (k v)
@@ -83,11 +81,14 @@
                                            (equal? k 'type)))
                                  (set-prop! o k v)
                                  (raise "Cannot set parent or type property of an object"))))
-    (for ([p init-params])
-      (if (and (pair? p)
-               (symbol? (car p)))
-          (set-prop! o (car p) (cdr p))
-          null))                      
+    (when (and
+           (> (length init-param-list) 0)
+           (list? (car init-param-list)))
+      (for ([p (car init-param-list)])
+        (if (and (pair? p)
+                 (symbol? (car p)))
+            (set-prop! o (car p) (cdr p))
+            null)))                      
     o))
 
 (define-syntax (define-method stx)
