@@ -9,8 +9,9 @@
 
 (define-class PersonWithId Person ((id 0)))
 (define-method (init PersonWithId nm id)
-  (tell (get self parent) init nm)
+  (tell super init nm)
   (set-prop! self 'id id))
+(define-method (greetings PersonWithId) (format "~a, your ID is ~a" (tell super greetings) (get self id)))
 
 (define ip (new PersonWithId))
 (tell ip init "Antara" 6565)
