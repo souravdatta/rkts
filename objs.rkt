@@ -1,22 +1,26 @@
 #lang racket
 
 (define null 'null)
-(define no-parent 'no-parent)
+
+(define no-parent (make-hash
+                   (list
+                    (cons 'describe
+                          (lambda (a b) (format "An object ~a" a)))
+                    (cons 'parent
+                          null))))
 
 (define this (make-parameter null))
 
+(define this-super (make-parameter null))
 
 (define (rget obj prop)
   (hash-ref obj
             prop
             (lambda () ;; faliure
               (let ([parent (hash-ref obj 'parent)])
-                (if (eq? parent no-parent)
+                (if (eq? parent null)
                     null
                     (rget parent prop))))))
-
-(define (tell-symbol obj message . params)
-  (apply (rget obj message) (cons obj params)))
 
 (define (set-parent! o parent)
   (hash-set! o 'parent parent))
@@ -43,10 +47,11 @@
     ((_ obj name a1 ...)
      (with-syntax ([result (datum->syntax stx 'result)])
        #'(let ([result (get obj name)])
-           (parameterize ([this obj])
+           (parameterize ([this obj]
+                          [this-super (get obj parent)])
              (if (procedure? result)
-                 (result obj a1 ...)
-                 null)))))))
+                 (result obj (get obj parent) a1 ...)
+                 (raise "I do not understand this"))))))))
 
 (define-syntax (define-class stx)
   (syntax-case stx ()
@@ -57,7 +62,7 @@
        (with-syntax ([quoted-prop-list-syntax (datum->syntax stx quoted-prop-list)])
          #'(define class-name (make-hash (list (cons 'constructor
                                                      (lambda () (let ([o (make-hash quoted-prop-list-syntax)])
-                                                                  (set-parent! o (new-object parent))
+                                                                  (set-parent! o (new parent))
                                                                   o)))
                                                (cons 'prototype
                                                      (make-hash))))))))
@@ -73,7 +78,7 @@
                                                (cons 'prototype
                                                      (make-hash))))))))))
 
-(define (new-object kls . init-param-list)
+(define (new kls . init-param-list)
   (let ([o ((hash-ref kls 'constructor))]
         [methods (hash-ref kls 'prototype)])
     (hash-for-each methods (lambda (k v)
@@ -97,11 +102,13 @@
      (let* ([sym (syntax->datum #'meth-name)]
             [sym-quote (list 'quote sym)])
        (with-syntax ([sx (datum->syntax stx sym-quote)]
-                     [self-sx (datum->syntax stx 'self)])
-         #'(let ([self-sx (this)])
+                     [self-sx (datum->syntax stx 'self)]
+                     [super-sx (datum->syntax stx 'super)])
+         #'(let ([self-sx (this)]
+                 [super-sx (this-super)])
              (hash-set! (hash-ref klass 'prototype)
                         sx
-                        (lambda (self-sx a1 ...) b1 ...))))))))  
+                        (lambda (self-sx super-sx a1 ...) b1 ...))))))))  
 
 
-(provide get tell define-class define-method set-prop! new-object no-parent null)
+(provide get tell define-class define-method set-prop! new no-parent null)
