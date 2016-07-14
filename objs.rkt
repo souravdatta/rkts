@@ -10,14 +10,14 @@ Example below.
 (require "objs.rkt")
 
 (define-class Person ((name "Anonymous")))
-(define-method (init Person nm) (set-prop! self 'name nm))
-(define-method (greetings Person) (format "Hello ~a" (get self name)))
+(define-method ((init Person) nm) (set-prop! self 'name nm))
+(define-method ((greetings Person)) (format "Hello ~a" (get self name)))
 
-(define-class PersonWithId Person ((id 0)))
-(define-method (init PersonWithId nm id)
+(define-class PersonWithId (inherit Person) ((id 0)))
+(define-method ((init PersonWithId) nm id)
   (tell super init nm)
   (set-prop! self 'id id))
-(define-method (greetings PersonWithId) (format "~a, your ID is ~a" (tell super greetings) (get self id)))
+(define-method ((greetings PersonWithId)) (format "~a, your ID is ~a" (tell super greetings) (get self id)))
 
 (define ip (new PersonWithId))
 (tell ip init "Bruce Wayne" 6565)
@@ -79,8 +79,8 @@ Example below.
                  (raise "I do not understand this"))))))))
 
 (define-syntax (define-class stx)
-  (syntax-case stx ()
-    ([_ class-name parent props]
+  (syntax-case stx (inherit)
+    ([_ class-name (inherit parent) props]
      (let* ([o (datum->syntax stx 'o)]
             [prop-list (syntax->datum #'props)]
             [quoted-prop-list (list 'quote prop-list)])
@@ -123,7 +123,7 @@ Example below.
 
 (define-syntax (define-method stx)
   (syntax-case stx ()
-    ((_ (meth-name klass a1 ...) b1 ...)
+    ((_ ((meth-name klass) a1 ...) b1 ...)
      (let* ([sym (syntax->datum #'meth-name)]
             [sym-quote (list 'quote sym)])
        (with-syntax ([sx (datum->syntax stx sym-quote)]
