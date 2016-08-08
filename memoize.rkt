@@ -7,7 +7,7 @@
 (define (memoize fn)
   (let ([h (make-hash)])
     (lambda args
-      (call/cc (lambda (k)
+      (call/ec (lambda (k)
                  (hash-ref h args (lambda ()
                                     (let ([result (apply fn args)])
                                       (hash-set! h args result)
