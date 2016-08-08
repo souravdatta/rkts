@@ -2,15 +2,17 @@
 
 (require (for-syntax syntax/parse))
 
+(define not-found 'memoize-not-found-value)
+
 (define (memoize fn)
   (let ([h (make-hash)])
     (lambda args
-      (let ([mem (hash-ref h args 'not-found)])
-        (if (eq? mem 'not-found)              
-            (let ([result (apply fn args)])
-              (hash-set! h args result)
-              result)
-            mem)))))
+      (call/cc (lambda (k)
+                 (hash-ref h args (lambda ()
+                                    (let ([result (apply fn args)])
+                                      (hash-set! h args result)
+                                      (k result)))))))))
+               
 
 (define-syntax (define-memoized stx)
   (syntax-parse stx
@@ -47,3 +49,4 @@ cpu time: 1 real time: 0 gc time: 0
 |#
 
 (provide memoize define-memoized)
+
