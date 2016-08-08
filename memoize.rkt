@@ -2,8 +2,6 @@
 
 (require (for-syntax syntax/parse))
 
-(define not-found 'memoize-not-found-value)
-
 (define (memoize fn)
   (let ([h (make-hash)])
     (lambda args
@@ -11,8 +9,7 @@
                  (hash-ref h args (lambda ()
                                     (let ([result (apply fn args)])
                                       (hash-set! h args result)
-                                      (k result)))))))))
-               
+                                      (k result)))))))))               
 
 (define-syntax (define-memoized stx)
   (syntax-parse stx
