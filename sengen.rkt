@@ -24,8 +24,7 @@
   
   (let ([rhs (assoc sym gram)])
     (if rhs
-        (begin
-          (generate-rhs (cdr rhs)))
+        (generate-rhs (cdr rhs))
         empty)))
 
 
