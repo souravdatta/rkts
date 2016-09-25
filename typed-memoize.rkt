@@ -1,5 +1,7 @@
 #lang typed/racket
 
+(require (for-syntax syntax/parse))
+
 (: memoize (All (r a ...)
                 (-> (-> a ... a r)
                     (-> a ... a r))))
@@ -34,5 +36,16 @@
     ((_ (define (fn-name:id arg:id ...+) body ...+))
      #'(define fn-name (memoize (lambda (arg ...) body ...))))))
 
-(provide memoize memoized)
 
+#|
+Example of Fibo :-
+
+(memoized 
+ (: fibo (-> Integer Integer)) 
+ (define (fibo n) 
+   (if (<= n 1) 
+       n 
+       (+ (fibo (- n 1)) 
+          (fibo (- n 2)))))) 
+
+|#
