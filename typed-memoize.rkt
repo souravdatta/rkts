@@ -49,3 +49,6 @@ Example of Fibo :-
           (fibo (- n 2)))))) 
 
 |#
+
+(provide memoize memoized)
+
