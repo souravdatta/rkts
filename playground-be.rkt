@@ -1,23 +1,22 @@
 #lang typed/racket
 
 (require/typed racket/tcp
-               [opaque TCP-Listener tcp-listener?]
                [tcp-listen (-> Number TCP-Listener)]
-               [tcp-accept (-> TCP-Listener (Values Number Number))])
-               
+               [tcp-accept (-> TCP-Listener (Values Input-Port Output-Port))])
+
 
 (: base-ns Namespace)
 (define base-ns (make-base-namespace))
 
-(define-type Line-info (List Number Number Any))
-(define-type Line-info-list (Listof Line-info))
-(define-type Exit (-> Line-info Nothing))
+(define-type Line-Info (List Number Number Any))
+(define-type Line-Info-List (Listof Line-Info))
+(define-type Exit (-> Line-Info Nothing))
 
-(: line-info (-> Number Number Any Line-info))
+(: line-info (-> Number Number Any Line-Info))
 (define (line-info l1 l2 a)
   (list l1 l2 a))
 
-(: line-eval (-> Line-info Namespace Line-info))
+(: line-eval (-> Line-Info Namespace Line-Info))
 (define (line-eval linfo ns)
   (call/cc (lambda ([exit : Exit])
              (call-with-exception-handler
@@ -34,13 +33,13 @@
                                                args))))))))
 
 
-(: line-eval-list (-> Line-info-list Line-info-list))
+(: line-eval-list (-> Line-Info-List Line-Info-List))
 (define (line-eval-list infos)
-  (map (lambda ([lin : Line-info]) (line-eval lin base-ns)) infos))
+  (map (lambda ([lin : Line-Info]) (line-eval lin base-ns)) infos))
 
 
-(: read-line-info-list (-> Any Line-info-list))
-(define (read-line-info-list line)
+(: read-Line-Info-List (-> Any Line-Info-List))
+(define (read-Line-Info-List line)
   (if (list? line)
       (map (lambda (e)
              (if (and
@@ -52,15 +51,24 @@
                    (if (and (number? n1)
                             (number? n2))
                        (line-info n1 n2 n3)
-                       (error "not a valid line-info list - (number number any)")))
-                 (error "not a valid line-info list - (number number any)")))
-                 
+                       (error "not a valid Line-Info list - (number number any)")))
+                 (error "not a valid Line-Info list - (number number any)")))
+           
            line)
-      (error "should be a list of line-infos")))
+      (error "should be a list of Line-Infos")))
 
 (: server (-> Number Void))
 (define (server port)
+
+  (: repl (-> Input-Port Output-Port Void))
+  (define (repl ip op)
+    (let ([read-data (read ip)])
+      (writeln (line-eval-list (read-Line-Info-List read-data)) op)
+      (flush-output op)
+      (repl ip op)))
+ 
+  
   (let ([listener (tcp-listen port)])
     (define-values (inp outp) (tcp-accept listener))
-    (displayln inp)
-    (displayln outp)))
+    (repl inp outp)))
+
