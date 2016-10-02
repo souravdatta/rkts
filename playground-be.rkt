@@ -29,7 +29,7 @@
               (lambda (e)
                 (exit (line-info (first linfo)
                                  (second linfo)
-                                 (list e))))
+                                 "Error")))
               (lambda ()
                 (call-with-values (lambda ()
                                     (eval (third linfo) ns))
@@ -120,3 +120,5 @@
 (remote-disconnect p)
 
 |#
+
+(provide server remote-connect remote-eval remote-disconnect)
