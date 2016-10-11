@@ -5,7 +5,11 @@
 
 (define-type Frontier-Element (Pairof (Listof Symbol)
                                       Number))
+
 (define-type Frontier (Listof Frontier-Element))
+
+(define-type Arrange-Fn (-> Frontier Frontier Frontier))
+
 
 (: routes Route-Map)
 (define routes '((arad . ((timisoara . 118)
@@ -59,13 +63,19 @@
         empty)))
 
 
-;; BFS - 1
-(: reduce-frontier (-> Frontier (Listof Symbol) Route-Map (Values Frontier (Listof Symbol))))
-(define (reduce-frontier fr explored rts)
+(: reduce-frontier (-> Frontier (Listof Symbol) Route-Map Arrange-Fn (Values Frontier (Listof Symbol))))
+(define (reduce-frontier fr explored rts arranger)
   (if (empty? fr)
       (values empty explored)
       (let* ([head (car fr)]
              [tail (cdr fr)]
              [explored1 (cons (first (car head)) explored)])
-        (values (append tail (make-frontier head rts #:explored explored))
+        (values (arranger tail (make-frontier head rts #:explored explored))
                 explored1))))
+
+
+(: BFS (-> Frontier Frontier Frontier))
+(define (BFS l1 l2)
+  (append l1 l2))
+
+
