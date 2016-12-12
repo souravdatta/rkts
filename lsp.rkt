@@ -36,6 +36,19 @@
         (cdr r)
         empty)))
 
+(: extend-primitives (-> Env (Listof Primitive) Env))
+(define (extend-primitives e lps)
+  (cons
+   lps
+   (cdr e)))
+
+(: lookup-primitive (-> Env Symbol (U False Primitive)))
+(define (lookup-primitive e s)
+  (let ([r (assoc s (car e))])
+    (if r
+        r
+        #f)))
+
 
 ;; procedue def
 (define-type Procedure (List Env
@@ -45,6 +58,7 @@
 (: make-procedure (-> Env (Listof Symbol) (Listof Any) Procedure))
 (define (make-procedure e args body)
   (list e args body))
+
 
 ;; lambda
 (: lambda? (-> (Pairof Symbol Any) Boolean))
