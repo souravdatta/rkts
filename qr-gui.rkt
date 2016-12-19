@@ -17,7 +17,7 @@
 (: qr-button (Instance Button%))
 (define qr-button (new button%
                        [parent app-window]
-                       [label "Make"]
+                       [label "Generate"]
                        [callback (lambda (b e)
                                    (let ([lbl (send qr-text get-value)])
                                      (when (string? lbl)

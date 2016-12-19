@@ -65,25 +65,33 @@
                line)
           (error (format "[~a] : should be a list of Line-Infos" line)))))
 
+;; The REPL
+
+(: repl (-> Input-Port Output-Port Void))
+(define (repl ip op)
+  (let* ([read-data (read ip)]
+         [result (line-eval-list (read-Line-Info-List read-data))])
+    (writeln read-data)
+    (writeln result op)
+    (flush-output op)
+    (displayln result)
+    (repl ip op)))
+  
+
 ;; Server component
 
 (: server (-> Number Void))
 (define (server port)
-  
-  (: repl (-> Input-Port Output-Port Void))
-  (define (repl ip op)
-    (let* ([read-data (read ip)]
-           [result (line-eval-list (read-Line-Info-List read-data))])
-      (writeln read-data)
-      (writeln result op)
-      (flush-output op)
-      (displayln result)
-      (repl ip op)))
-  
-  
   (let ([listener (tcp-listen port)])
     (define-values (inp outp) (tcp-accept listener))
     (repl inp outp)))
+
+;; Standard cmd line repl
+
+(: cmdline (-> Void))
+(define (cmdline)
+  (repl (current-input-port)
+        (current-output-port)))
 
 #|
 
