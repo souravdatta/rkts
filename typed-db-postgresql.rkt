@@ -1,7 +1,6 @@
 #lang typed/racket
 
 (require typed/openssl)
-
 (require typed/db)
 
 (require/typed db
@@ -13,11 +12,12 @@
                                          #:notification-handler (U 'output 'error Output-Port (-> String Any) (-> String String Any))
                                          #:server String
                                          #:port Integer
-                                         #:socket (U String 'guess False)
+                                         #:socket (U Path-String 'guess False)
                                          #:password (U String False)
                                          #:ssl (U 'yes 'optional 'no)
                                          #:ssl-context SSL-Client-Context)
-                                        Connection)))
+                                        Connection))
+               (postgresql-guess-socket-path (-> Path-String)))
+                                        
 
-
-(provide postgresql-connect)
+(provide postgresql-connect postgresql-guess-socket-path)
