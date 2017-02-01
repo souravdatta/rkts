@@ -77,10 +77,9 @@
 (define (majors-for-transition trans n-start)
   (let ([n-temp : Note n-start]
         [notes : (Listof Note) (list n-start)])
-    (map (lambda ([fn : (-> Note Note)])
-           (set! n-temp (fn n-temp))
-           (set! notes (cons n-temp notes)))
-         trans)
+    (for ([fn : (-> Note Note) trans])
+      (set! n-temp (fn n-temp))
+      (set! notes (cons n-temp notes)))
     (reverse notes)))
 
 (: majors (-> Note (Listof Note)))
