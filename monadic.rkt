@@ -22,12 +22,49 @@
     ([_ (return val-decl:expr)]
      #'(return val-decl))))
 
-#|
-(: process2 (-> Integer (Monad Integer)))
-(define (process2 x)
-  (do+
-   [:= {x1 : Integer} (return (+ x 1))]
-   [:= [x2 : Integer] (return (+ x1 x1))]
-   (return (* x2 x2))))
-|#
 
+#|
+
+(: process1 (-> (Listof Integer) (Monad (Listof Integer))))
+(define (process1 li)
+  (: filter1 (-> (Listof Integer) (Monad (Listof Integer))))
+  (define (filter1 li)
+    (return (filter (λ ([x : Integer]) (< x 50)) li)))
+
+  (: add1 (-> (Listof Integer) (Monad (Listof Integer))))
+  (define (add1 li)
+    (return (map (λ ([x : Integer]) (+ x 1)) li)))
+
+  (do+
+   (:= [l1 : (Listof Integer)] (filter1 li))
+   (:= [l2 : (Listof Integer)] (add1 l1))
+   (return l2)))
+
+
+(: process2 (-> (Listof Integer) (Monad (Listof Integer))))
+(define (process2 li)
+  (: filter1 (-> (Listof Integer) (Monad (Listof Integer))))
+  (define (filter1 li)
+    (return (filter (λ ([x : Integer]) (< x 25)) li)))
+
+  (: add1 (-> (Listof Integer) (Monad (Listof Integer))))
+  (define (add1 li)
+    (return (map (λ ([x : Integer]) (+ x 1)) li)))
+
+  (do+
+   (:= [l1 : (Listof Integer)] (filter1 li))
+   (:= [l2 : (Listof Integer)] (add1 l1))
+   (return l2)))
+
+(define l1 '(1 9 45 89 23 78 3 16 56 54 45 8 89 17 23 28 49 23))
+
+(define r (do+
+             (:= [l : (Listof Integer)] (process1 l1))
+             (:= [result : (Listof Integer)] (process2 l))
+             (return result)))
+
+> (Monad-content r)
+- : (Listof Integer)
+'(3 11 25 5 18 10 19 25 25)
+
+|#
