@@ -62,9 +62,9 @@ Example of using (Monad a)
       (return c)
       (return #f)))
 
-(: p-abc (-> Char Char (Monad Char)))
-(define (p-abc p c)
-  (if (and (char=? c #\c) (char=? p #\b))
+(: p-abc (-> Char Char Char (Monad Char)))
+(define (p-abc p1 p2 c)
+  (if (and (char=? c #\c) (char=? p2 #\b) (char=? p1 #\a))
       (return c)
       (return #f)))
 
@@ -73,7 +73,7 @@ Example of using (Monad a)
   (do+ 
    [:= (c1 : Char) (p-a (string-ref str 0))]
    [:= (c2 : Char) (p-ab c1 (string-ref str 1))]
-   [:= (c3 : Char) (p-abc c2 (string-ref str 2))]
+   [:= (c3 : Char) (p-abc c1 c2 (string-ref str 2))]
    (<< c3)))
 
 |#
@@ -106,4 +106,3 @@ Example of using custom Monad which implements <Monad>-bind and <Monad>-return.
                 (<< r4)))
 
 |#
-
