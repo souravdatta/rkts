@@ -7,6 +7,8 @@
          return
          bind
          mmap
+         mfail?
+         monad-or
          do+
          do<>)
 
@@ -31,6 +33,18 @@
         (f c)
         (return #f))))
 
+(: mfail? (All (a) (-> (Monad a) Boolean)))
+(define (mfail? m)
+  (false? (Monad-content m)))
+
+(: monad-or (All (a) (-> (Monad a)
+                         (Monad a)
+                         (Monad a))))
+(define (monad-or m1 m2)
+  (if (mfail? m1)
+      m2
+      m1))
+
 (define-syntax (do+ stx)
   (syntax-parse stx
     ([_ ((~literal :=) (var-decl:id : var-type:expr) val-decl:expr) e2 ...]
@@ -44,7 +58,6 @@
      #'(mond-binder val-decl (λ ([var-decl : var-type]) (do<> (mond-binder mond-return) e2 ...))))
     ([_ (mond-binder:id mond-return:id) ((~literal <<) val-decl:expr)]
      #'(mond-return val-decl))))
-
 
 #|
 
@@ -75,6 +88,35 @@ Example of using (Monad a)
    [:= (c2 : Char) (p-ab c1 (string-ref str 1))]
    [:= (c3 : Char) (p-abc c1 c2 (string-ref str 2))]
    (<< c3)))
+
+(: p-aba (-> Char Char Char (Monad Char)))
+(define (p-aba p1 p2 c)
+  (if (and (char=? c #\a) (char=? p2 #\b) (char=? p1 #\a))
+      (return c)
+      (return #f)))
+
+(: parse-aba (-> String (Monad Char)))
+(define (parse-aba str)
+  (do+ 
+   [:= (c1 : Char) (p-a (string-ref str 0))]
+   [:= (c2 : Char) (p-ab c1 (string-ref str 1))]
+   [:= (c3 : Char) (p-aba c1 c2 (string-ref str 2))]
+   (<< c3)))
+
+(: p-last (-> Char Char (Monad Symbol)))
+(define (p-last p1 c)
+  (if (and (or (char=? p1 #\c)
+               (char=? p1 #\a))
+           (char=? c #\.))
+      (return 'ok)
+      (return #f)))
+
+(: parse-example (-> String (Monad Symbol)))
+(define (parse-example s)
+  (do+
+   (:= [p1 : Char] (monad-or (parse-abc s) (parse-aba s)))
+   (:= [p2 : Symbol] (p-last p1 (string-ref s 3)))
+   (<< p2)))
 
 |#
 
