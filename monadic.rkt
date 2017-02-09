@@ -3,24 +3,33 @@
 (require (for-syntax syntax/parse))
 
 (provide (struct-out Monad)
+         Monad-Content
          return
-         mmap
          bind
+         mmap
          do+
          do<>)
 
-(struct (a) Monad ([content : a]))
+(define-type (Monad-Content a) (U a False))
 
-(: return (All (a) (-> a (Monad a))))
+(struct (a) Monad ([content : (Monad-Content a)]))
+
+(: return (All (a) (-> (Monad-Content a) (Monad a))))
 (define (return x) (Monad x))
 
 (: mmap (All (a b) (-> (Monad a) (-> a b) (Monad b))))
 (define (mmap mond f)
-  (return (f (Monad-content mond))))
+  (let ([v (Monad-content mond)])
+    (if v
+        (return (f v))
+        (return #f))))
 
 (: bind (All (a b) (-> (Monad a) (-> a (Monad b)) (Monad b))))
 (define (bind bx f)
-  (f (Monad-content bx)))
+  (let ([c : (Monad-Content a) (Monad-content bx)])
+    (if c
+        (f c)
+        (return #f))))
 
 (define-syntax (do+ stx)
   (syntax-parse stx
@@ -31,63 +40,41 @@
 
 (define-syntax (do<> stx)
   (syntax-parse stx
-    ([_ mond:id ((~literal :=) (var-decl:id : var-type:expr) val-decl:expr) e2 ...]
-     (let* ([monad-name (symbol->string (syntax->datum #'mond))]
-            [monad-bind-name (format "~a-~a" monad-name "bind")])            ;; convert bind => <Monad>-bind
-       (with-syntax ([monad-bind (datum->syntax stx (string->symbol monad-bind-name))])
-         #'(monad-bind val-decl (λ ([var-decl : var-type]) (do<> mond e2 ...))))))
-    ([_ mond:id ((~literal <<) val-decl:expr)]
-     (let* ([monad-name (symbol->string (syntax->datum #'mond))]
-            [monad-return-name (format "~a-~a" monad-name "return")])       ;; convert return => <Monad>-return
-       (with-syntax ([monad-return (datum->syntax stx (string->symbol monad-return-name))])
-         #'(monad-return val-decl))))))
+    ([_ (mond-binder:id mond-return:id) ((~literal :=) (var-decl:id : var-type:expr) val-decl:expr) e2 ...]
+     #'(mond-binder val-decl (λ ([var-decl : var-type]) (do<> (mond-binder mond-return) e2 ...))))
+    ([_ (mond-binder:id mond-return:id) ((~literal <<) val-decl:expr)]
+     #'(mond-return val-decl))))
 
 
 #|
 
 Example of using (Monad a)
 
-(: process1 (-> (Listof Integer) (Monad (Listof Integer))))
-(define (process1 li)
-  (: filter1 (-> (Listof Integer) (Monad (Listof Integer))))
-  (define (filter1 li)
-    (return (filter (λ ([x : Integer]) (< x 50)) li)))
+(: p-a (-> Char (Monad Char)))
+(define (p-a c)
+  (if (char=? c #\a)
+      (return c)
+      (return #f)))
 
-  (: add1 (-> (Listof Integer) (Monad (Listof Integer))))
-  (define (add1 li)
-    (return (map (λ ([x : Integer]) (+ x 1)) li)))
+(: p-ab (-> Char Char (Monad Char)))
+(define (p-ab p c)
+  (if (and (char=? c #\b) (char=? p #\a))
+      (return c)
+      (return #f)))
 
-  (do+
-   (:= [l1 : (Listof Integer)] (filter1 li))
-   (:= [l2 : (Listof Integer)] (add1 l1))
-   (<< l2)))
+(: p-abc (-> Char Char (Monad Char)))
+(define (p-abc p c)
+  (if (and (char=? c #\c) (char=? p #\b))
+      (return c)
+      (return #f)))
 
-
-(: process2 (-> (Listof Integer) (Monad (Listof Integer))))
-(define (process2 li)
-  (: filter1 (-> (Listof Integer) (Monad (Listof Integer))))
-  (define (filter1 li)
-    (return (filter (λ ([x : Integer]) (< x 25)) li)))
-
-  (: add1 (-> (Listof Integer) (Monad (Listof Integer))))
-  (define (add1 li)
-    (return (map (λ ([x : Integer]) (+ x 1)) li)))
-
-  (do+
-   (:= [l1 : (Listof Integer)] (filter1 li))
-   (:= [l2 : (Listof Integer)] (add1 l1))
-   (<< l2)))
-
-(define l1 '(1 9 45 89 23 78 3 16 56 54 45 8 89 17 23 28 49 23))
-
-(define r (do+
-             (:= [l : (Listof Integer)] (process1 l1))
-             (:= [result : (Listof Integer)] (process2 l))
-             (<< result)))
-
-> (Monad-content r)
-- : (Listof Integer)
-'(3 11 25 5 18 10 19 25 25)
+(: parse-abc (-> String (Monad Char)))
+(define (parse-abc str)
+  (do+ 
+   [:= (c1 : Char) (p-a (string-ref str 0))]
+   [:= (c2 : Char) (p-ab c1 (string-ref str 1))]
+   [:= (c3 : Char) (p-abc c2 (string-ref str 2))]
+   (<< c3)))
 
 |#
 
@@ -111,7 +98,7 @@ Example of using custom Monad which implements <Monad>-bind and <Monad>-return.
   (Probably-return (* r (random 1 100))))
 
 (: p Probably)
-(define p (do<> Probably
+(define p (do<> (Probably-bind Probably-return)
                 (:= [r1 : Real] (randomness 10.2))
                 (:= [r2 : Real] (randomness r1))
                 (:= [r3 : Real] (randomness r2))
@@ -119,3 +106,4 @@ Example of using custom Monad which implements <Monad>-bind and <Monad>-return.
                 (<< r4)))
 
 |#
+
