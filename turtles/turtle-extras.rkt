@@ -2,6 +2,7 @@
 
 (require/typed graphics/turtles
                [draw (-> Real Void)]
+               [move (-> Real Void)]
                [turn (-> Real Void)]
                [turtles (-> Boolean Void)])
 
@@ -32,6 +33,10 @@
 (: left (-> Real Void))
 (define (left x)
   (turn x))
+
+(: mv (-> Real Void))
+(define (mv x)
+  (move x))
 
 (: turtles-on (-> Void))
 (define (turtles-on)
