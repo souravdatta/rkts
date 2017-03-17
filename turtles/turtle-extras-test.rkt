@@ -16,6 +16,7 @@
 (arc-left 270 40)
 |#
 
+#|
 (: ray (-> Real Void))
 (define (ray size)
   (for ([x 2])
@@ -30,6 +31,33 @@
     (right 100)))
 
 (sunshine 40)
+|#
 
+#|
 (save-turtle-bitmap "/Users/sourav/Pictures/turtle1.png"
                     'png)
+|#
+
+#|
+(fd 100)
+(pu (fd 100))
+(fd 100)
+(pu (bk 200))
+(right 45)
+(fd 400)
+|#
+
+#|
+(arc-left 45 180)
+(right 180)
+(pu (arc-right 45 180))
+(right 180)
+(arc-right 45 180)
+(right 180)
+(pu (arc-left 45 180))
+|#
+
+
+
+
+  
