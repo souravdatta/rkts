@@ -4,7 +4,10 @@
                [draw (-> Real Void)]
                [move (-> Real Void)]
                [turn (-> Real Void)]
-               [turtles (-> Boolean Void)])
+               [turtles (-> Boolean Void)]
+               [save-turtle-bitmap (-> (U String Output-Port)
+                               (U 'png 'jpeg 'xbm 'xpm 'bmp)
+                               Boolean)])
 
 (: arc-left (-> Real Real Void))
 (define (arc-left angle radius)
@@ -43,4 +46,6 @@
   (turtles #t)
   (left 90))
 
-(provide (all-defined-out))
+(provide (all-defined-out)
+         save-turtle-bitmap)
+
