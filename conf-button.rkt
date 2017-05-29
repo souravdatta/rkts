@@ -4,19 +4,19 @@
 
 (define-type Conf-Button%
   (Class
-     (init (conf-1 Nonnegative-Integer)
-           (conf-2 Nonnegative-Integer)
-           (conf-3 Nonnegative-Integer)
-           (result Nonnegative-Integer))
-     (field (conf-1 Nonnegative-Integer)
-            (conf-2 Nonnegative-Integer)
-            (conf-3 Nonnegative-Integer)
-            (result Nonnegative-Integer))
-     (render (-> (Instance Pane%) (Instance Pane%)))
-     (render-list
-      (-> (Pairof
-           (List Nonnegative-Integer Nonnegative-Integer Nonnegative-Integer)
-           Nonnegative-Integer)))))
+   (init (conf-1 Nonnegative-Integer)
+         (conf-2 Nonnegative-Integer)
+         (conf-3 Nonnegative-Integer)
+         (result Nonnegative-Integer))
+   (field (conf-1 Nonnegative-Integer)
+          (conf-2 Nonnegative-Integer)
+          (conf-3 Nonnegative-Integer)
+          (result Nonnegative-Integer))
+   (render (-> (Instance Pane%) (Instance Pane%)))
+   (render-list
+    (-> (Pairof
+         (List Nonnegative-Integer Nonnegative-Integer Nonnegative-Integer)
+         Nonnegative-Integer)))))
 
 (: conf-button% Conf-Button%)
 (define conf-button% (class object%
@@ -24,16 +24,8 @@
                                    [conf-2 : Nonnegative-Integer]
                                    [conf-3 : Nonnegative-Integer]
                                    [result : Nonnegative-Integer])
-                       (: render-list (-> (Pairof (List Nonnegative-Integer
-                                                        Nonnegative-Integer
-                                                        Nonnegative-Integer)
-                                                  Nonnegative-Integer)))
                        (define/public (render-list)
                          (cons (list conf-1 conf-2 conf-3) result))
-                       (: render (-> (U (Instance Frame%)
-                                        (Instance Panel%)
-                                        (Instance Pane%))
-                                     (Instance Pane%)))
                        (: conf->label (-> (U 1 2 3 4) String))
                        (define/private (conf->label i)
                          (cond
@@ -60,11 +52,10 @@
                                 [btn4 (new button%
                                            [parent vpane]
                                            [label (conf->label 4)]
-                                           [callback (lambda ([b : (Instance Button%)]
-                                                              [e : Any])
+                                           [callback (λ ([b : (Instance Button%)]
+                                                         [e : Any])
                                                        (set! result (if (= result 0) 1 0))
-                                                       (send b set-label (conf->label 4))
-                                                       (println (render-list)))])])
+                                                       (send b set-label (conf->label 4)))])])
                            vpane))
                        (super-new)))
 
