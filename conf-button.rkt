@@ -2,8 +2,24 @@
 
 (require typed/racket/gui)
 
+(define-type Conf-Button%
+  (Class
+     (init (conf-1 Nonnegative-Integer)
+           (conf-2 Nonnegative-Integer)
+           (conf-3 Nonnegative-Integer)
+           (result Nonnegative-Integer))
+     (field (conf-1 Nonnegative-Integer)
+            (conf-2 Nonnegative-Integer)
+            (conf-3 Nonnegative-Integer)
+            (result Nonnegative-Integer))
+     (render (-> (Instance Pane%) (Instance Pane%)))
+     (render-list
+      (-> (Pairof
+           (List Nonnegative-Integer Nonnegative-Integer Nonnegative-Integer)
+           Nonnegative-Integer)))))
 
-(define Conf-Button% (class object%
+(: conf-button% Conf-Button%)
+(define conf-button% (class object%
                        (init-field [conf-1 : Nonnegative-Integer]
                                    [conf-2 : Nonnegative-Integer]
                                    [conf-3 : Nonnegative-Integer]
