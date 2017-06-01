@@ -124,8 +124,65 @@
     (apply-rule! b rul)
     (make-image b)))
 
+(define-type Rule-Spec (List (U
+                              (List 'value
+                                    Positive-Integer)
+                              (List 'binary
+                                    Integer Integer Integer Integer
+                                    Integer Integer Integer Integer))
+                             (List 'dimension Positive-Integer)
+                             (List 'init-conf (Listof (List Nonnegative-Integer
+                                                            Nonnegative-Integer
+                                                            Nonnegative-Integer)))))
 
-          
+(: draw-rule (-> Rule-Spec (Instance Bitmap%)))
+(define (draw-rule spec)
+
+  (: binarize (-> Positive-Integer (List Integer Integer Integer Integer
+                                         Integer Integer Integer Integer)))
+  (define (binarize p)
+    (let* ([bins (reverse (string->list (number->string p 2)))]
+           [lenbins (length bins)])
+      (let ([result : (Listof Integer) empty])
+        (for ([i (in-range 8)])
+          (if (>= i lenbins)
+              (set! result (cons 0 result))
+              (set! result (cons (if (char=? (list-ref bins i) #\0)
+                                     0
+                                     1) result))))
+        (list (list-ref result 0)
+              (list-ref result 1)
+              (list-ref result 2)
+              (list-ref result 3)
+              (list-ref result 4)
+              (list-ref result 5)
+              (list-ref result 6)
+              (list-ref result 7)))))
+  
+  (let* ([rule-value (first spec)]
+         [rule (rule-generate (if (eq? (first rule-value) 'value)
+                                  (binarize (second rule-value))
+                                  (cdr rule-value)))]
+         [dimension (second (second spec))]
+         [iconf (second (third spec))])
+    (let ([b (make-board dimension)])
+      (for ([coord iconf])
+        (board-set! b
+                    (first coord)
+                    (second coord)
+                    (if (= (third coord) 0) 0 1))
+        (apply-rule! b rule))
+      (make-image b))))
+
+
+#|
+
+ (draw-rule '((value 90)
+               (dimension 451)
+               (init-conf ((0 226 1)
+                           (0 210 1)
+                           (0 242 1)))))
+
+|#
 
 (provide (all-defined-out))
-
