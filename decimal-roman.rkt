@@ -73,7 +73,7 @@
     (cond
       ((= n 400) "CD")
       ((= n 900) "CM")
-      (else (chain-rules n (list rule-100 rule-500)))))
+      (else (chain-rules n (list rule-500 rule-100)))))
 
   ; n >= 1000
   (: rule-4 (-> Integer String))
